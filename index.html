@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="週">
+<meta name="theme-color" content="#E7EBEC">
+<title>週の時刻表</title>
+<style>
+:root{
+  --paper:#E7EBEC; --card:#F8F9F9; --ink:#15242C; --soft:#5C6D75; --rule:#C4CED2;
+  --audio:#2E5F8A; --haha:#9A5B2E; --golf:#0F5B4C; --free:#7C858B; --sun:#A33B33;
+  --mie:#5A4A86; --yard:#6B7A3C;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho",YuMincho,serif;
+  --gothic:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--gothic);line-height:1.5;
+  padding:24px 16px calc(40px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
+
+.masthead{border-bottom:2px solid var(--ink);padding-bottom:11px;margin-bottom:20px}
+.masthead h1{font-family:var(--mincho);font-size:28px;font-weight:600;letter-spacing:.22em;text-indent:.22em}
+.masthead p{font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:.14em;margin-top:5px}
+
+.cal{background:var(--card);padding:12px 10px 10px;margin-bottom:10px}
+.calbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.calbar h2{font-family:var(--mincho);font-size:19px;font-weight:600;letter-spacing:.08em}
+.calbar h2 small{font-family:var(--gothic);font-size:11px;font-weight:400;color:var(--soft);letter-spacing:0;margin-left:8px}
+.nav{background:none;border:1px solid var(--rule);color:var(--ink);
+  font-family:var(--mono);font-size:14px;width:32px;height:30px;cursor:pointer}
+.nav:active{background:var(--paper)}
+.grid{display:grid;grid-template-columns:26px repeat(7,1fr);gap:2px}
+.hd{font-family:var(--mono);font-size:10px;color:var(--soft);text-align:center;padding-bottom:3px;letter-spacing:.04em}
+.hd.s{color:var(--sun)}
+.wk{font-family:var(--mono);font-size:11px;font-weight:600;
+  border:1px solid var(--rule);background:var(--paper);color:var(--soft);
+  cursor:pointer;display:flex;align-items:center;justify-content:center}
+.wk[data-p="A"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.wk[data-p="B"]{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+.cell{aspect-ratio:1/1.15;border:1px solid transparent;background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-family:var(--mono);font-size:13px;cursor:pointer;padding:2px}
+.cell.pad{background:transparent;cursor:default}
+.cell.sat{color:#3A6E8F}
+.cell.sun,.cell.hol{color:var(--sun)}
+.cell.today{border:2px solid var(--ink)}
+.cell .tag{width:100%;font-size:8.5px;letter-spacing:.02em;text-align:center;
+  color:#fff;background:var(--c);padding:1px 0;line-height:1.3}
+.cell .tag.none{background:none;color:var(--soft);border-top:1px solid var(--rule)}
+.cell .slot{width:100%;display:flex;align-items:center;gap:2px;font-size:8.5px;line-height:1.35;
+  color:#fff;background:var(--c);padding:1px 2px}
+.cell .slot i{font-style:normal;font-size:7px;opacity:.7;font-family:var(--mono)}
+.cell .slot span{flex:1;text-align:center}
+.cell .slot.none{background:none;color:var(--soft);border-top:1px solid var(--rule)}
+.cell .slot.none i{opacity:.55}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:9px 2px 0;
+  font-size:10px;color:var(--soft)}
+.legend b{display:flex;align-items:center;gap:5px;font-weight:400}
+.legend b::before{content:"";width:9px;height:9px;background:var(--c)}
+.hint{font-family:var(--mono);font-size:9.5px;color:var(--soft);letter-spacing:.04em;
+  margin:8px 2px 0;line-height:1.8}
+
+.eyebrow{display:flex;align-items:baseline;gap:10px;margin:26px 0 10px}
+.eyebrow b{font-family:var(--mincho);font-size:17px;font-weight:600;letter-spacing:.16em}
+.eyebrow span{font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:.1em}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--rule)}
+
+details{background:var(--card);margin-bottom:6px;border-left:3px solid var(--c)}
+summary{list-style:none;cursor:pointer;padding:11px 13px;display:flex;align-items:center;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary .dy{font-family:var(--mincho);font-size:16px;font-weight:600}
+summary .ac{font-size:13px;color:var(--c)}
+summary .ar{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--soft)}
+.bd{padding:2px 13px 14px}
+
+.rail{padding-left:1px}
+.stop{display:grid;grid-template-columns:50px 20px 1fr;align-items:start;min-height:31px}
+.stop .t{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--soft);padding-top:1px}
+.stop .n{position:relative}
+.stop .n::before{content:"";position:absolute;left:50%;top:0;bottom:-1px;width:1.5px;
+  transform:translateX(-50%);background:var(--line);opacity:.32}
+.stop:first-child .n::before{top:8px}
+.stop:last-child .n::before{bottom:auto;height:8px}
+.stop .n::after{content:"";position:absolute;left:50%;top:5px;width:7px;height:7px;
+  transform:translateX(-50%);border-radius:50%;background:var(--card);border:1.5px solid var(--line)}
+.stop.key .n::after{background:var(--line)}
+.stop .l{font-size:13.5px;padding-top:1px}
+.stop .l em{font-style:normal;font-size:11px;color:var(--soft);margin-left:7px;font-family:var(--mono)}
+.split{font-family:var(--mono);font-size:10px;color:var(--soft);letter-spacing:.1em;padding:8px 0 8px 70px}
+
+.weekend{border-top:1px solid var(--rule);margin-top:22px;padding-top:12px;display:flex;align-items:baseline;gap:12px}
+.weekend b{font-family:var(--mincho);font-size:15px;letter-spacing:.1em}
+.weekend span{font-size:13px;color:var(--soft)}
+footer{margin-top:22px;padding-top:11px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:9.5px;color:var(--soft);letter-spacing:.06em}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <h1>週の時刻表</h1>
+  <p>PATTERN A &middot; B</p>
+</header>
+
+<div class="cal">
+  <div class="calbar">
+    <button class="nav" id="prev" aria-label="前の月">&lsaquo;</button>
+    <h2 id="mlabel"></h2>
+    <button class="nav" id="next" aria-label="次の月">&rsaquo;</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="hint">左端の枠 &rarr; その週が A → B → 未定<br>平日の日付 &rarr; その日の時刻表へ<br>土日は午前・午後を押すたびに フリー → 母 → 三重 → ゴルフ → 庭</p>
+  <div class="legend">
+    <b style="--c:var(--free)">フリー</b><b style="--c:var(--haha)">母</b>
+    <b style="--c:var(--mie)">三重</b><b style="--c:var(--golf)">ゴルフ</b>
+    <b style="--c:var(--yard)">庭・掃除・ゴミ</b><b style="--c:var(--audio)">オーディオ</b>
+  </div>
+</div>
+
+<div id="tables"></div>
+
+<div class="weekend"><b>土 ・ 日</b><span>フリー</span></div>
+<footer>ギター 21:30 / 就寝 22:00 &mdash; 全型共通</footer>
+
+<script>
+(function(){
+"use strict";
+
+var COMMON=[["6:20","起床","",1],["6:40","ユキマル散歩","",0],["7:25","出発","小説執筆",0],
+            ["8:20","会社到着","",0],["17:00","エンジニア業務習得","",0],["18:00","会社退出","",1]];
+
+var NIGHT={
+ audio:{name:"オーディオ",short:"オーディオ",c:"--audio",rows:[["19:00","帰宅","",1],["19:30","食事","",0],
+   ["20:00","オーディオ","",1],["21:00","風呂","",0],["21:30","ギター練習","",0],["22:00","就寝","",1]]},
+ haha:{name:"母",short:"母",c:"--haha",rows:[["19:00","スーパーで食料品","",1],["19:30","学園前 着","夕食",1],
+   ["20:30","学園前 発","",0],["21:00","帰宅・風呂","",0],["21:30","ギター練習","",0],["22:00","就寝","",1]]},
+ golf:{name:"ゴルフ練習",short:"ゴルフ",c:"--golf",rows:[["19:00","帰宅","",1],["19:20","夕食","",0],
+   ["19:50","練習場へ出発","",0],["20:00","練習開始","50球",1],["21:00","練習終了","",0],
+   ["21:10","帰宅・風呂","",0],["21:30","ギター練習","",0],["22:00","就寝","",1]]},
+ free:{name:"フリー",short:"フリー",c:"--free",rows:[["19:00","帰宅","",1],["21:30","ギター練習","",0],["22:00","就寝","",1]]}
+};
+
+var PAT={A:["audio","golf","haha","golf","free"],B:["audio","haha","golf","golf","audio"]};
+var DAYJP=["月","火","水","木","金"];
+
+var HOL={
+"2026-01-01":1,"2026-01-12":1,"2026-02-11":1,"2026-02-23":1,"2026-03-20":1,"2026-04-29":1,
+"2026-05-03":1,"2026-05-04":1,"2026-05-05":1,"2026-05-06":1,"2026-07-20":1,"2026-08-11":1,
+"2026-09-21":1,"2026-09-22":1,"2026-09-23":1,"2026-10-12":1,"2026-11-03":1,"2026-11-23":1,
+"2027-01-01":1,"2027-01-11":1,"2027-02-11":1,"2027-02-23":1,"2027-03-21":1,"2027-03-22":1,
+"2027-04-29":1,"2027-05-03":1,"2027-05-04":1,"2027-05-05":1,"2027-07-19":1,"2027-08-11":1,
+"2027-09-20":1,"2027-09-23":1,"2027-10-11":1,"2027-11-03":1,"2027-11-23":1};
+
+function key(d){var m=d.getMonth()+1,day=d.getDate();
+  return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(day<10?"0":"")+day;}
+function monday(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  var w=(x.getDay()+6)%7;x.setDate(x.getDate()-w);return x;}
+var WE=[{id:"free",n:"フリー",c:"--free"},{id:"haha",n:"母",c:"--haha"},
+        {id:"mie",n:"三重",c:"--mie"},{id:"golf",n:"ゴルフ",c:"--golf"},
+        {id:"yard",n:"庭",c:"--yard"}];
+function weFind(id){for(var i=0;i<WE.length;i++){if(WE[i].id===id){return WE[i];}}return null;}
+function weNext(id){for(var i=0;i<WE.length;i++){if(WE[i].id===id){return i===WE.length-1?"":WE[i+1].id;}}return WE[0].id;}
+
+function get(k){try{return localStorage.getItem("wp:"+k)||"";}catch(e){return "";}}
+function set(k,v){try{if(v){localStorage.setItem("wp:"+k,v);}else{localStorage.removeItem("wp:"+k);}}catch(e){}}
+
+function rail(rows,c){
+  var h='<div class="rail" style="--line:var('+c+')">',i,r;
+  for(i=0;i<rows.length;i++){r=rows[i];
+    h+='<div class="stop'+(r[3]?" key":"")+'"><div class="t">'+r[0]+'</div><div class="n"></div>'+
+       '<div class="l">'+r[1]+(r[2]?'<em>'+r[2]+'</em>':'')+'</div></div>';}
+  return h+'</div>';
+}
+
+function buildTables(){
+  var out="";
+  ["A","B"].forEach(function(p){
+    out+='<div class="eyebrow"><b>パターン '+p+'</b><span>'+
+         (p==="A"?"土日に三重へ行く週":"通常週")+'</span></div>';
+    for(var i=0;i<5;i++){
+      var n=NIGHT[PAT[p][i]];
+      out+='<details id="'+p+'-'+i+'" style="--c:var('+n.c+')">'+
+        '<summary><span class="dy">'+DAYJP[i]+'</span><span class="ac">'+n.name+'</span>'+
+        '<span class="ar">&rsaquo;</span></summary><div class="bd">'+
+        rail(COMMON,"--ink")+'<p class="split">&darr;</p>'+rail(n.rows,n.c)+'</div></details>';
+    }
+  });
+  document.getElementById("tables").innerHTML=out;
+}
+
+var cur=new Date();cur.setDate(1);
+var today=key(new Date());
+
+function draw(){
+  var y=cur.getFullYear(),m=cur.getMonth();
+  document.getElementById("mlabel").innerHTML=y+"年 "+(m+1)+"月<small>令和"+(y-2018)+"年</small>";
+  var h='<div class="hd"></div>',lbl=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],i;
+  for(i=0;i<7;i++){h+='<div class="hd'+(i===6?" s":"")+'">'+lbl[i]+'</div>';}
+
+  var last=new Date(y,m+1,0), d=monday(new Date(y,m,1));
+  while(d<=last){
+    var wk=key(d),p=get(wk);
+    h+='<div class="wk" data-wk="'+wk+'"'+(p?' data-p="'+p+'"':'')+'>'+(p||"\u2013")+'</div>';
+    for(i=0;i<7;i++){
+      if(d.getMonth()!==m){h+='<div class="cell pad"></div>';}
+      else{
+        var k=key(d),cls="cell",tag='<span class="tag none">\u2013</span>';
+        if(i===5){cls+=" sat";}
+        if(i===6){cls+=" sun";}
+        if(HOL[k]){cls+=" hol";}
+        if(k===today){cls+=" today";}
+        if(i<5&&p){var n=NIGHT[PAT[p][i]];
+          tag='<span class="tag" style="--c:var('+n.c+')">'+n.short+'</span>';}
+        if(i>=5){
+          tag="";
+          ["am","pm"].forEach(function(s){
+            var v=weFind(get(k+":"+s));
+            tag+='<span class="slot'+(v?"":" none")+'" data-s="'+k+":"+s+'"'+
+                 (v?' style="--c:var('+v.c+')"':'')+'><i>'+(s==="am"?"午前":"午後")+
+                 '</i><span>'+(v?v.n:"\u2013")+'</span></span>';
+          });
+        }
+        h+='<div class="'+cls+'" data-j="'+(i<5&&p?p+"-"+i:"")+'">'+d.getDate()+tag+'</div>';
+      }
+      d.setDate(d.getDate()+1);
+    }
+  }
+  document.getElementById("grid").innerHTML=h;
+}
+
+document.getElementById("prev").onclick=function(){cur.setMonth(cur.getMonth()-1);draw();};
+document.getElementById("next").onclick=function(){cur.setMonth(cur.getMonth()+1);draw();};
+
+document.getElementById("grid").addEventListener("click",function(e){
+  var w=e.target.closest(".wk");
+  if(w){var k=w.getAttribute("data-wk"),v=get(k);
+    set(k,v===""?"A":(v==="A"?"B":""));draw();return;}
+  var s=e.target.closest(".slot");
+  if(s){var sk=s.getAttribute("data-s");
+    set(sk,weNext(get(sk)));draw();return;}
+  var c=e.target.closest(".cell");
+  if(!c){return;}
+  var j=c.getAttribute("data-j");
+  if(!j){return;}
+  var el=document.getElementById(j);
+  if(!el){return;}
+  var all=document.querySelectorAll("details");
+  for(var i=0;i<all.length;i++){all[i].open=false;}
+  el.open=true;
+  el.scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+buildTables();
+draw();
+})();
+</script>
+</body>
+</html>
